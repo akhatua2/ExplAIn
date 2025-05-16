@@ -57,15 +57,9 @@ class GSM8KDataLoader:
             raise ValueError("Split must be either 'train' or 'test'")
             
         data = self.train_data if split == 'train' else self.test_data
-        
         formatted_data = data.map(lambda x: {
-            'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final answer in <answer></answer> tags.\n\nProblem: {x['question']}"
+            'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final number answer in \\boxed{{}} format. Only put a single number answer in the box.\n\nProblem: {x['question']}"
         })
-
-        # formatted_data = data.map(lambda x: {
-        #     'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final answer in \boxed{} tags.\n\nProblem: {x['question']}"
-        # })
-        
         if split == 'train':
             self.train_data = formatted_data
         else:
