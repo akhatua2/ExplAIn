@@ -13,6 +13,37 @@ class GSM8KDataLoader:
         self.test_data = self.dataset['test']
         return self.dataset
         
+    def format_prompts_sft(self, split='train'):
+
+        if self.dataset is None:
+            raise ValueError("Please load data first using load_data()")
+            
+        if split not in ['train', 'test']:
+            raise ValueError("Split must be either 'train' or 'test'")
+            
+        data = self.train_data if split == 'train' else self.test_data
+
+        # final_ans = formatted_train[i]['answer'].split('####')[-1].strip()
+        # full_text = formatted_train[i]['prompt'] + "".join(formatted_train[i]['answer'].split('####')[:-1]) + "<answer>" + final_ans + "</answer>"
+        
+        formatted_data = data.map(lambda x: {
+            'prompt': f"""Please solve this math problem step by step. Show your reasoning and put the final answer in <answer></answer> tags.\n\nProblem: {x['question']}""",
+            'completion': ''.join(x['answer'].split('####')[:-1]) + "<answer>" + x['answer'].split('####')[-1].strip() + "</answer>"
+        })
+
+
+
+        # formatted_data = data.map(lambda x: {
+        #     'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final answer in \boxed{} tags.\n\nProblem: {x['question']}"
+        # })
+        
+        if split == 'train':
+            self.train_data = formatted_data
+        else:
+            self.test_data = formatted_data
+            
+        return formatted_data
+
     def format_prompts(self, split='train'):
         """Format the specified split with instruction prompts
         
@@ -30,6 +61,10 @@ class GSM8KDataLoader:
         formatted_data = data.map(lambda x: {
             'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final answer in <answer></answer> tags.\n\nProblem: {x['question']}"
         })
+
+        # formatted_data = data.map(lambda x: {
+        #     'prompt': f"Please solve this math problem step by step. Show your reasoning and put the final answer in \boxed{} tags.\n\nProblem: {x['question']}"
+        # })
         
         if split == 'train':
             self.train_data = formatted_data
@@ -51,6 +86,7 @@ class GSM8KDataLoader:
             raise ValueError("Split must be either 'train' or 'test'")
             
         return self.train_data if split == 'train' else self.test_data
+
 
 # Example usage:
 # dataloader = GSM8KDataLoader()
