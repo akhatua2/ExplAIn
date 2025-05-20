@@ -1,18 +1,21 @@
 from transformers import AutoModelForCausalLM
 from datasets import load_dataset
 from trl import SFTTrainer,SFTConfig
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  
 
 from dataloader import GSM8KDataLoader
 
 # Load and format GSM8K dataset
 dataloader = GSM8KDataLoader()
 dataloader.load_data()
-formatted_train = dataloader.format_prompts_sft(split='train')
+# formatted_train = dataloader.format_prompts_sft(split='train')
+formatted_train = dataloader.format_prompts_sft_boxed(split='train')
 
 model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-1.7B", trust_remote_code=True)
 
 training_args = SFTConfig(
-    output_dir="Qwen3-1.7B-GSM8K-SFT",
+    output_dir="Qwen3-1.7B-GSM8K-SFT-boxed",
     num_train_epochs=4,
     per_device_train_batch_size=4,
     gradient_accumulation_steps=2,
@@ -20,7 +23,7 @@ training_args = SFTConfig(
     bf16=True,
     logging_steps=10,
     remove_unused_columns=False,
-    report_to="wandb"
+    report_to="wandb",
 )
 
 trainer = SFTTrainer(
